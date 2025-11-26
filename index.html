@@ -105,8 +105,11 @@ async function sendMessage() {
         const data = await response.json();
         messagesDiv.lastChild.remove(); 
 
-        if (data?.choices?.[0]?.message?.content) {
-            addMessage(data.choices[0].message.content, "bot");
+        if (data.output_text) {
+    addMessage(data.output_text, "bot");
+} else {
+    addMessage("Something glitched mama — try again.", "bot");
+    }
         } else {
             addMessage("Something glitched mama — try again.", "bot");
         }

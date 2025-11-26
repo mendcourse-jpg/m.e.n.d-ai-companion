@@ -1,178 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>M.E.N.D. Healing Companion</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>M.E.N.D AI Companion</title>
     <style>
         body {
-            margin: 0;
-            background: #fbeeee;
+            background: #f8f4fc;
             font-family: Arial, sans-serif;
+            padding: 20px;
         }
-
-        .header {
-            background: #e7a7a4;
-            padding: 15px;
-            text-align: center;
-            color: white;
-            font-size: 22px;
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
-
-        .chat-container {
-            width: 100%;
-            max-width: 600px;
+        .container {
+            max-width: 500px;
             margin: auto;
-            height: 85vh;
-            display: flex;
-            flex-direction: column;
             background: white;
-            border-left: 2px solid #e7a7a4;
-            border-right: 2px solid #e7a7a4;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-
-        .messages {
-            flex: 1;
+        h1 {
+            text-align: center;
+            color: #6a3ea1;
+        }
+        #messages {
+            background: #faf8ff;
             padding: 10px;
+            height: 300px;
             overflow-y: auto;
-        }
-
-        .message {
-            padding: 10px 14px;
-            margin: 10px 0;
-            max-width: 80%;
             border-radius: 10px;
-            line-height: 1.4;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
         }
-
-        .user {
-            background: #ffe4e4;
-            align-self: flex-end;
+        .msg {
+            margin-bottom: 12px;
         }
-
+        .me {
+            text-align: right;
+            color: #6a3ea1;
+        }
         .bot {
-            background: #f7d3c2;
-            align-self: flex-start;
+            text-align: left;
+            color: #333;
         }
-
-        .input-container {
-            padding: 10px;
-            display: flex;
-            gap: 10px;
-            border-top: 2px solid #e7a7a4;
-        }
-
         input {
-            flex: 1;
+            width: 100%;
             padding: 12px;
-            border: 2px solid #e7a7a4;
             border-radius: 10px;
-            font-size: 16px;
-        }
-
-        button {
-            padding: 12px 18px;
-            background: #e7a7a4;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
+            border: 1px solid #aaa;
         }
     </style>
 </head>
 <body>
 
-    <div class="header">M.E.N.D. Healing Companion</div>
-
-    <div class="chat-container">
-        <div class="messages" id="messages"></div>
-
-        <div class="input-container">
-            <input id="userInput" type="text" placeholder="Type your message...">
-            <button onclick="sendMessage()">Send</button>
-        </div>
+    <div class="container">
+        <h1>M.E.N.D AI</h1>
+        <div id="messages"></div>
+        <input 
+            id="userInput" 
+            placeholder="Talk to me mama…" 
+            onkeydown="if(event.key==='Enter'){ sendMessage(); }"
+        />
     </div>
 
 <script>
-    // Your bot's personality + logic
-    const BOT_PERSONALITY = `
-You are the M.E.N.D. Healing Companion — a warm, culturally aware support guide designed for African American single mothers healing from the breakup with their children's father.
+const messagesDiv = document.getElementById("messages");
 
-Your tone:
-- soft
-- empowering
-- healing
-- non-judgmental
-- rooted in emotional safety
-- speaks with understanding of Black motherhood experiences
+function addMessage(text, sender) {
+    const msg = document.createElement("div");
+    msg.className = "msg " + sender;
+    msg.innerText = text;
+    messagesDiv.appendChild(msg);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
 
-Your purpose:
-- support healing
-- offer emotional guidance
-- help with organization, community resources, routines, confidence, and motherhood
-- give soothing, practical advice
-- help moms stay calm and centered
-- NEVER shame or blame the mother
-- ALWAYS uplift, affirm, and guide gently
+async function sendMessage() {
+    const input = document.getElementById("userInput");
+    const text = input.value.trim();
+    if (!text) return;
 
-You may answer:
-- healing questions
-- emotional support
-- parenting support
-- routines and lifestyle guidance
-- community resource suggestions (general, not location-specific)
-- inner work, reflection, and coping strategies
+    addMessage(text, "me");
+    input.value = "";
 
-Do not:
-- offer legal or medical instructions
-- blame the user
-- talk like a therapist
-`;
+    addMessage("Hold on mama, let me think…", "bot");
 
-    function appendMessage(text, sender) {
-        const messages = document.getElementById("messages");
-        const message = document.createElement("div");
-        message.className = "message " + sender;
-        message.innerText = text;
-        messages.appendChild(message);
-        messages.scrollTop = messages.scrollHeight;
-    }
+    try {
+        const response = await fetch("https://api.aimlapi.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer demo"
+            },
+            body: JSON.stringify({
+                model: "gpt-4o-mini",
+                messages: [
+                    {
+                        role: "system",
+                        content: "You are M.E.N.D AI, a healing guide for Black mothers recovering from the breakup with their children’s father. You speak with warmth, clarity, and empowerment. You help with emotional healing, parenting support, motivation, and local resources."
+                    },
+                    { role: "user", content: text }
+                ]
+            })
+        });
 
-    async function sendMessage() {
-        const input = document.getElementById("userInput");
-        const userText = input.value.trim();
-        if (!userText) return;
+        const data = await response.json();
+        messagesDiv.lastChild.remove(); 
 
-        appendMessage(userText, "user");
-        input.value = "";
-
-        // Call free model via HuggingFace Inference API (no API key needed)
-        const botReply = await getBotReply(userText);
-        appendMessage(botReply, "bot");
-    }
-
-    async function getBotReply(userMessage) {
-        const prompt = BOT_PERSONALITY + "\nUser: " + userMessage + "\nAssistant:";
-
-        try {
-            const response = await fetch("https://api-inference.huggingface.co/models/google/gemma-2b-it", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ inputs: prompt })
-            });
-
-            const data = await response.json();
-            if (data.error) return "I'm here with you, mama. Let's take a deep breath and try again.";
-
-            return data[0]?.generated_text?.split("Assistant:")?.pop()?.trim()
-                || "I'm right here, mama. Say that again?";
-        } catch {
-            return "I'm here, mama. Something glitched — try again.";
+        if (data?.choices?.[0]?.message?.content) {
+            addMessage(data.choices[0].message.content, "bot");
+        } else {
+            addMessage("Something glitched mama — try again.", "bot");
         }
+
+    } catch (err) {
+        messagesDiv.lastChild.remove();
+        addMessage("I'm here mama… but something went wrong. Try again.", "bot");
     }
+}
 </script>
 
 </body>
-      </html>
+</html>

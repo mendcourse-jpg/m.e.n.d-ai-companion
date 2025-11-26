@@ -62,63 +62,7 @@
         />
     </div>
 
-<script>
-const messagesDiv = document.getElementById("messages");
 
-function addMessage(text, sender) {
-    const msg = document.createElement("div");
-    msg.className = "msg " + sender;
-    msg.innerText = text;
-    messagesDiv.appendChild(msg);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-}
-
-async function sendMessage() {
-    const input = document.getElementById("userInput");
-    const text = input.value.trim();
-    if (!text) return;
-
-    addMessage(text, "me");
-    input.value = "";
-
-    addMessage("Hold on mama, let me think…", "bot");
-
-    try {
-        const response = await fetch("https://api.aimlapi.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer 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"
-            },
-            body: JSON.stringify({
-                model: model: "mistralai/Mistral-7B-Instruct-v0.3",
-                messages: [
-                    {
-                        role: "system",
-                        content: "You are M.E.N.D AI, a healing guide for Black mothers recovering from the breakup with their children’s father. You speak with warmth, clarity, and empowerment. You help with emotional healing, parenting support, motivation, and local resources."
-                    },
-                    { role: "user", content: text }
-                ]
-            })
-        });
-
-        const data = await response.json();
-        messagesDiv.lastChild.remove(); 
-
-        if (data.output_text) {
-    addMessage(data.output_text, "bot");
-} else {
-    addMessage("Something glitched mama — try again.", "bot");
-    }
-        } else {
-            addMessage("Something glitched mama — try again.", "bot");
-        }
-
-    } catch (err) {
-        messagesDiv.lastChild.remove();
-        addMessage("I'm here mama… but something went wrong. Try again.", "bot");
-    }
-}
 <script src="mend.js"></script>
 </body>
 </html>

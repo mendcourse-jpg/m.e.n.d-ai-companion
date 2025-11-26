@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M.E.N.D. Healing Companion</title>
+    <style>
+        body {
+            margin: 0;
+            background: #fbeeee;
+            font-family: Arial, sans-serif;
+        }
+
+        .header {
+            background: #e7a7a4;
+            padding: 15px;
+            text-align: center;
+            color: white;
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 600px;
+            margin: auto;
+            height: 85vh;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            border-left: 2px solid #e7a7a4;
+            border-right: 2px solid #e7a7a4;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        .message {
+            padding: 10px 14px;
+            margin: 10px 0;
+            max-width: 80%;
+            border-radius: 10px;
+            line-height: 1.4;
+        }
+
+        .user {
+            background: #ffe4e4;
+            align-self: flex-end;
+        }
+
+        .bot {
+            background: #f7d3c2;
+            align-self: flex-start;
+        }
+
+        .input-container {
+            padding: 10px;
+            display: flex;
+            gap: 10px;
+            border-top: 2px solid #e7a7a4;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e7a7a4;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 12px 18px;
+            background: #e7a7a4;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">M.E.N.D. Healing Companion</div>
+
+    <div class="chat-container">
+        <div class="messages" id="messages"></div>
+
+        <div class="input-container">
+            <input id="userInput" type="text" placeholder="Type your message...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+<script>
+    // Your bot's personality + logic
+    const BOT_PERSONALITY = `
+You are the M.E.N.D. Healing Companion — a warm, culturally aware support guide designed for African American single mothers healing from the breakup with their children's father.
+
+Your tone:
+- soft
+- empowering
+- healing
+- non-judgmental
+- rooted in emotional safety
+- speaks with understanding of Black motherhood experiences
+
+Your purpose:
+- support healing
+- offer emotional guidance
+- help with organization, community resources, routines, confidence, and motherhood
+- give soothing, practical advice
+- help moms stay calm and centered
+- NEVER shame or blame the mother
+- ALWAYS uplift, affirm, and guide gently
+
+You may answer:
+- healing questions
+- emotional support
+- parenting support
+- routines and lifestyle guidance
+- community resource suggestions (general, not location-specific)
+- inner work, reflection, and coping strategies
+
+Do not:
+- offer legal or medical instructions
+- blame the user
+- talk like a therapist
+`;
+
+    function appendMessage(text, sender) {
+        const messages = document.getElementById("messages");
+        const message = document.createElement("div");
+        message.className = "message " + sender;
+        message.innerText = text;
+        messages.appendChild(message);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById("userInput");
+        const userText = input.value.trim();
+        if (!userText) return;
+
+        appendMessage(userText, "user");
+        input.value = "";
+
+        // Call free model via HuggingFace Inference API (no API key needed)
+        const botReply = await getBotReply(userText);
+        appendMessage(botReply, "bot");
+    }
+
+    async function getBotReply(userMessage) {
+        const prompt = BOT_PERSONALITY + "\nUser: " + userMessage + "\nAssistant:";
+
+        try {
+            const response = await fetch("https://api-inference.huggingface.co/models/google/gemma-2b-it", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ inputs: prompt })
+            });
+
+            const data = await response.json();
+            if (data.error) return "I'm here with you, mama. Let's take a deep breath and try again.";
+
+            return data[0]?.generated_text?.split("Assistant:")?.pop()?.trim()
+                || "I'm right here, mama. Say that again?";
+        } catch {
+            return "I'm here, mama. Something glitched — try again.";
+        }
+    }
+</script>
+
+</body>
+      </html>
